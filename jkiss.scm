@@ -11,6 +11,13 @@
     (define scalar-stream (cons-stream scalar scalar-stream) )
     (stream-map operator stream scalar-stream)
 )
+
+; equivalent to x ^= x << 5
+(define (stream-expt-mod-bitshift stream bits)
+    (define bitshift-stream (cons-stream (arithmetic-shift (stream-car stream) bits) bitshift-stream) )
+    ()
+)
+
 (define ones
     (cons-stream 1 ones))
 
@@ -39,6 +46,7 @@
     )
     (recur base 1 pow)
 )
+
 ; the x-stream is equivalent to the following:
 ; (define x 123456789)
 ; (set! x (mod (* 314527869 (+ x 1234567)))) 
@@ -51,7 +59,18 @@
         )
     )
 )
+; the y-stream is equivalent to the following:
+;(set! y (expt-mod y (arithmetic-shift y 5)))
+;(set! y (expt-mod y (arithmetic-shift y -7)))
+;(set! y (expt-mod y (arithmetic-shift y 22)))
 
+(define y-stream
+    (stream-cdr
+        (cons-stream 987654321
+            (stream-scalar expt-mod (arithmetic-shift (stream-car y-stream) 5) y-stream)
+        )
+    )
+)
 
 (define (jkiss)
     (define x 123456789)
@@ -78,4 +97,8 @@
 ;(define y (jkiss))
 ;(display x) (newline)
 ;(display y) (newline)
-(print-stream x 100)
+(newline)
+(define y 987654321)
+(set! y (expt-mod y (arithmetic-shift y 5)))
+(display y)(newline)
+(print-stream y-stream 2)
