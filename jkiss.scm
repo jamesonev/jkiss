@@ -3,6 +3,26 @@
 ; (2^64 - 1)
 (define ULLONG_MAX 18446744073709551615) ; (2^64 - 1)
 
+(define (add-stream s1 s2)
+    (stream-map + s1 s2)
+)
+
+(define (stream-scalar operator scalar stream)
+    (define scalar-stream (cons-stream scalar scalar-stream) )
+    (stream-map operator stream scalar-stream)
+)
+(define ones
+    (cons-stream 1 ones))
+
+(define positive-integers
+    (cons-stream 1 (add-stream ones positive-integers)))
+
+(define (print-stream s num)
+    (display (stream-car s)) (newline)
+    (cond
+        ((> num 1) (print-stream (stream-cdr s) (- num 1)))
+    )
+)
 
 (define (expt-mod base pow)
     ; mod any number by ULLONG_MAX
@@ -19,6 +39,19 @@
     )
     (recur base 1 pow)
 )
+; the x-stream is equivalent to the following:
+; (define x 123456789)
+; (set! x (mod (* 314527869 (+ x 1234567)))) 
+(define x-stream
+    (cons-stream 123456789
+        (stream-scalar modulo ULLONG_MAX
+            (stream-scalar * 314527869
+                (stream-scalar + 1234567 x-stream )
+            ) 
+        )
+    )
+)
+
 
 (define (jkiss)
     (define x 123456789)
@@ -26,9 +59,9 @@
     (define z 43219876)
     (define c 6543217)
 
-    (set! x (* 314527869 (+ x 1234567)))
+    ;(set! x (* 314527869 (+ x 1234567)))
 
-    (set! y (expt-mod y 5))
+    (set! y (expt-mod y (arithmetic-shift y 5)))
     (set! y (expt-mod y (arithmetic-shift y -7)))
     (set! y (expt-mod y (arithmetic-shift y 22)))
 
@@ -38,6 +71,11 @@
     (+ x y z)
 )
 
-(begin
-    (jkiss)
-)
+
+
+
+;(define x (jkiss))
+;(define y (jkiss))
+;(display x) (newline)
+;(display y) (newline)
+(print-stream x 100)
